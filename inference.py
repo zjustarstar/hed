@@ -101,6 +101,26 @@ def main():
     test(test_loader, net, save_dir=join(output_dir, 'test'))
 
 
+def drawGrid(img):
+    h,w,_ = img.shape
+    seg_num = 8
+
+    seg_row_width = int(h / seg_num)
+    seg_col_width = int(w / seg_num)
+    for i in range(1, seg_num):
+        # 竖线
+        line_pt1 = (i*seg_row_width, 0)
+        line_pt2 = (i*seg_row_width, h-1)
+        cv2.line(img, line_pt1, line_pt2, (0,0,255),2)
+
+        # 横线
+        line_pt1 = (0, i*seg_col_width)
+        line_pt2 = (w-1, i*seg_col_width)
+        cv2.line(img, line_pt1, line_pt2, (0,0,255),2)
+
+    return img
+
+
 def test(test_loader, net, save_dir):
     """ Test procedure. """
     # Create the directories.
@@ -123,8 +143,13 @@ def test(test_loader, net, save_dir):
         preds_list = net(images)
         fuse       = preds_list[-1].detach().cpu().numpy()[0, 0]  # Shape: [h, w].
         name       = test_loader.dataset.images_name[batch_index]
-
         edgeImage = Image.fromarray((fuse * 255).astype(np.uint8))
+
+        # 原图
+        path = test_loader.dataset.images_path[batch_index]
+        oriImg = cv2.imread(join(args.dataset, path))
+        newimg = drawGrid(oriImg)
+        cv2.imwrite(join(save_png_dir, '{}_ori.jpg'.format(name)), newimg)
 
         # 转为二值图;
         grayEdgeImg = cv2.cvtColor(np.asarray(edgeImage), cv2.COLOR_RGB2BGR)
