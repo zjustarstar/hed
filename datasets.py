@@ -65,3 +65,40 @@ class BsdsDataset(data.Dataset):
             return image, edge
         else:
             return image
+
+
+class MyDataset(data.Dataset):
+    def __init__(self, dataset_dir='./data/HED-BSDS'):
+        # Set dataset directory and split.
+        self.dataset_dir = dataset_dir
+        self.images_path = []
+        self.images_name = []
+
+        for name, l, fl in os.walk(dataset_dir):
+            for filename in fl:
+                name, ext = os.path.splitext(filename)
+                if ext in ['.jpg', '.jpeg', '.png']:
+                    self.images_path.append(filename)
+                    self.images_name.append(name)
+
+    def __len__(self):
+        return len(self.images_path)
+
+    def __getitem__(self, index):
+        # Get image.
+        image_path = join(self.dataset_dir, self.images_path[index])
+        image = cv2.imread(image_path).astype(np.float32)
+        # Note: Image arrays read by OpenCV and Matplotlib are slightly different.
+        # Matplotlib reading code:
+        #   image = plt.imread(image_path).astype(np.float32)
+        #   image = image[:, :, ::-1]            # RGB to BGR.
+        # Reference:
+        #   https://oldpan.me/archives/python-opencv-pil-dif
+        image = image - np.array((104.00698793,  # Minus statistics.
+                                  116.66876762,
+                                  122.67891434))
+        image = np.transpose(image, (2, 0, 1))  # HWC to CHW.
+        image = image.astype(np.float32)  # To float32.
+
+        # Return image and (possible) edge.
+        return image

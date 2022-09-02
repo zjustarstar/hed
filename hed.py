@@ -49,6 +49,11 @@ parser.add_argument('--dataset',          default='./data/HED-BSDS', help='HED-B
 parser.add_argument('--cpu',              default=False,             help='Enable CPU mode.', action='store_true')
 args = parser.parse_args()
 
+# 输入的参数
+args.caffe_model = './data/hed_pretrained_bsds.py36pickle'
+args.output = './output-officialpretrain'
+args.test = True
+
 # Set device.
 device = torch.device('cpu' if args.cpu else 'cuda')
 
